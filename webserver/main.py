@@ -1,12 +1,11 @@
-from datetime import datetime, timezone
 from random import randrange
-from uuid import uuid4
 
 from fastapi import FastAPI
 
 from database import insert_and_assert
 from fib import fibonacci
-from log import get_logger
+from utils.helpers import get_utc_timestamp, get_uuid
+from utils.log import get_logger
 
 MIN_UPPER_LIMIT = 450
 
@@ -41,12 +40,8 @@ def get_random_fibonacci():
 
     Calculated.numbers.add(rand_integer)
 
-    _id = uuid4().hex
-    utc_timestamp = datetime.now(
-        timezone.utc
-    ).replace(
-        tzinfo=timezone.utc
-    ).timestamp()
+    _id = get_uuid()
+    utc_timestamp = get_utc_timestamp()
 
     data = {
         "id": _id,

@@ -1,6 +1,10 @@
-from pony.orm import Database, PrimaryKey, Required, db_session, select
+from os import getcwd
 
-db = Database("sqlite", "wbserver.sqlite", create_db=True)
+from pony.orm import PrimaryKey, Required, db_session
+
+from utils.db import get_database
+
+db = get_database(f"{getcwd()}/webserver.sqlite")
 
 
 class FibonacciRecord(db.Entity):
