@@ -38,7 +38,7 @@ def get_random_fibonacci():
     data = {
         "id": _id,
         "array": array,
-        "time_is_sec": f"{bs_elapsed_time: .2f}",
+        "time_in_sec": f"{bs_elapsed_time: .2f}",
     }
 
     pickled = {**data}
