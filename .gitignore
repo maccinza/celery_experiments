@@ -154,4 +154,4 @@ cython_debug/
 
 before/
 .DS_Store
-*.sqlite3
+*.sqlite

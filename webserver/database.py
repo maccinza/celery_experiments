@@ -7,11 +7,10 @@ from utils.db import get_database
 db = get_database(f"{getcwd()}/webserver.sqlite")
 
 
-class FibonacciRecord(db.Entity):
+class SortingRecord(db.Entity):
     id = PrimaryKey(str)
-    number = Required(int)
-    fibonacci = Required(str)
-    timestamp = Required(str)
+    array = Required(bytes)
+    time_is_sec = Required(str)
 
 
 db.generate_mapping(create_tables=True)
@@ -19,6 +18,5 @@ db.generate_mapping(create_tables=True)
 
 @db_session
 def insert_and_assert(attributes: dict) -> bool:
-    # import ipdb; ipdb.set_trace()
-    FibonacciRecord(**attributes)
-    return FibonacciRecord.exists(id=attributes["id"])
+    SortingRecord(**attributes)
+    return SortingRecord.exists(id=attributes["id"])

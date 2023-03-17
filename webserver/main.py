@@ -1,61 +1,57 @@
-from random import randrange
+from copy import copy
+from pickle import dumps
+from random import randrange, shuffle
+from timeit import default_timer as timer
 
 from fastapi import FastAPI
 
 from database import insert_and_assert
-from fib import fibonacci
-from utils.helpers import get_utc_timestamp, get_uuid
+from sorter import bubble_sort
+from utils.helpers import get_uuid
 from utils.log import get_logger
 
-MIN_UPPER_LIMIT = 450
+LOWER_LIMIT = 50000
+UPPER_LIMIT = 100000
 
 logger = get_logger(__name__)
 app = FastAPI()
 
 
-class Borg:
-    __monostate = None
-
-    def __init__(self):
-        if not Borg.__monostate:
-            Borg.__monostate = self.__dict__
-            self.numbers = set()
-        else:
-            self.__dict__ = Borg.__monostate
-
-
-Calculated = Borg()
-
-
-@app.get("/fibonacci")
+@app.get("/random_sorting")
 def get_random_fibonacci():
-    rand_integer = (
-        randrange(MIN_UPPER_LIMIT + max(Calculated.numbers)) if Calculated.numbers
-        else randrange(MIN_UPPER_LIMIT)
+    endpoint_start = timer()
+    rand_range = randrange(LOWER_LIMIT, UPPER_LIMIT)
+    numbers = [num for num in range(1, rand_range + 1)]
+    shuffle(numbers)
+    array = copy(numbers)
+
+    logger.info(f"Sorting array with {len(numbers)} shuffled numbers")
+    bs_start = timer()
+    bubble_sort(numbers)
+    bs_elapsed_time = timer() - bs_start
+    logger.info(
+        f"Bubble sort took {bs_elapsed_time: .2f} seconds to sort array with "
+        f"size {len(numbers)}"
     )
 
-    logger.info(f"Calculating fibonacci for number {rand_integer}")
-    random_fibonacci = fibonacci(rand_integer)
-    logger.info(f"Fibonacci for {rand_integer} is {random_fibonacci}")
-
-    Calculated.numbers.add(rand_integer)
-
     _id = get_uuid()
-    utc_timestamp = get_utc_timestamp()
-
     data = {
         "id": _id,
-        "number": rand_integer,
-        "fibonacci": str(random_fibonacci),
-        "timestamp": str(utc_timestamp)
+        "array": array,
+        "time_is_sec": f"{bs_elapsed_time: .2f}",
     }
 
+    pickled = {**data}
+    pickled.update({"array": dumps(data["array"])})
     try:
-        success = insert_and_assert(data)
+        success = insert_and_assert(pickled)
     except Exception as exc:
         success = False
-        logger.info(f"Failed to insert and assert with exception. Got {exc}")
+        logger.error(f"Failed to insert and assert with exception. Got {exc}")
     finally:
         logger.info(f"Performed db insertion {'with' if success else 'without'} success.")
+
+    endpoint_elapsed = timer() - endpoint_start
+    logger.info(f"Endpoint took {endpoint_elapsed: .2f} seconds to handle request")
 
     return data
