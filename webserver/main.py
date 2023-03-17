@@ -18,7 +18,7 @@ app = FastAPI()
 
 
 @app.get("/random_sorting")
-def get_random_fibonacci():
+def get_random_sorting():
     endpoint_start = timer()
     rand_range = randrange(LOWER_LIMIT, UPPER_LIMIT)
     numbers = [num for num in range(1, rand_range + 1)]
