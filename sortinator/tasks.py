@@ -1,9 +1,12 @@
 
+from pathlib import Path
 from pickle import dumps, loads
+import sys
 
 from celery import Celery
 from requests.status_codes import codes
 
+from celery_settings import base as CELERY_CONFIG
 from database import insert_and_assert, RecordTypeEnum
 from utils.client import get_sorting
 from utils.helpers import get_uuid, get_utc_timestamp
@@ -11,14 +14,10 @@ from utils.log import get_logger
 
 
 logger = get_logger(__name__)
-app = Celery(
-    'tasks',
-    broker='pyamqp://guest@localhost//',
-    backend='redis://localhost:6379/0'
-)
+celery_app = Celery('sortinator.tasks', config_source=CELERY_CONFIG)
 
 
-@app.task(bind=True)
+@celery_app.task(bind=True)
 def sortinate(self):
     start_timestamp = get_utc_timestamp()
 
@@ -70,7 +69,7 @@ def sortinate(self):
     return data
 
 
-@app.task(bind=True)
+@celery_app.task(bind=True)
 def summarize(self, tasks_data):
     start_timestamp = get_utc_timestamp()
     logger.info(f"Starting summarize task {self.request.id}.")
@@ -128,4 +127,19 @@ def summarize(self, tasks_data):
     logger.info(
         f"Finished summarize task {self.request.id} "
         f"in {elapsed_time: .2f} seconds."
+    )
+
+if __name__ == "__main__":
+    current = Path(__file__)
+    sys.path.insert(0, str(current.parent.parent.absolute()))
+    celery_app.worker_main(
+        [
+            "-A",
+            "sortinator.tasks",
+            "worker",
+            "--loglevel=info",
+            "--without-gossip",
+            "--without-mingle",
+            "--heartbeat-interval=300",
+        ]
     )
