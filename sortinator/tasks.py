@@ -1,20 +1,20 @@
 
-from pathlib import Path
-from pickle import dumps, loads
-import sys
+from copy import deepcopy
+from pickle import dumps
 
 from celery import Celery
+from celery.signals import after_setup_logger
 from requests.status_codes import codes
 
-from celery_settings import base as CELERY_CONFIG
-from database import insert_and_assert, RecordTypeEnum
+from sortinator.celery_settings import base as CELERY_CONFIG
+from sortinator.database import insert_and_assert, RecordTypeEnum
 from utils.client import get_sorting
 from utils.helpers import get_uuid, get_utc_timestamp
 from utils.log import get_logger
 
 
 logger = get_logger(__name__)
-celery_app = Celery('sortinator.tasks', config_source=CELERY_CONFIG)
+celery_app = Celery("sortinator.tasks", config_source=CELERY_CONFIG)
 
 
 @celery_app.task(bind=True)
@@ -44,11 +44,13 @@ def sortinate(self):
         "success": success,
         "start_timestamp": start_timestamp,
         "end_timestamp": req_timestamp,
-        "data": dumps(response_data)
+        "data": response_data
     }
 
+    db_data = deepcopy(data)
+    db_data["data"] = dumps(db_data["data"])
     try:
-        inserted = insert_and_assert(RecordTypeEnum.Task.value, data)
+        inserted = insert_and_assert(RecordTypeEnum.Task.value, db_data)
     except Exception as exc:
         inserted = False
         logger.error(f"Failed to insert and assert with exception. Got {exc}")
@@ -100,18 +102,25 @@ def summarize(self, tasks_data):
         statuses.append(task_data["success"])
         summary["task_ids"].append(task_data["task_id"])
 
-        data = loads(task_data["data"])
-        length = len(data["array"])
+        length = len(task_data["data"]["array"])
         summary["min_length"] = min(summary["min_length"], length)
         summary["max_length"] = max(summary["max_length"], length)
         lengths.append(length)
 
-    summary["avg_time"] = sum(times)/len(times)
-    summary["avg_length"] = sum(lengths)/len(lengths)
+    summary["avg_time"] = sum(times)/len(times) if times else 0
+    summary["avg_length"] = sum(lengths)/len(lengths) if lengths else 0
     summary["overall_success"] = all(statuses)
 
+    db_summary = {"id": get_uuid(), **summary}
+    db_summary["min_time"] = str(db_summary["min_time"])
+    db_summary["max_time"] = str(db_summary["max_time"])
+    db_summary["avg_time"] = str(db_summary["avg_time"])
+    db_summary["min_length"] = str(db_summary["min_length"])
+    db_summary["max_length"] = str(db_summary["max_length"])
+    db_summary["avg_length"] = str(db_summary["avg_length"])
+
     try:
-        inserted = insert_and_assert(RecordTypeEnum.Summary.value, summary)
+        inserted = insert_and_assert(RecordTypeEnum.Summary.value, db_summary)
     except Exception as exc:
         inserted = False
         logger.error(f"Failed to insert and assert with exception. Got {exc}")
@@ -130,8 +139,6 @@ def summarize(self, tasks_data):
     )
 
 if __name__ == "__main__":
-    current = Path(__file__)
-    sys.path.insert(0, str(current.parent.parent.absolute()))
     celery_app.worker_main(
         [
             "-A",

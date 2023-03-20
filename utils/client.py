@@ -1,6 +1,6 @@
 import requests
 
-from log import get_logger
+from utils.log import get_logger
 
 WEBSERVER_ADDRESS = "http://localhost:8000"
 logger = get_logger(__name__)

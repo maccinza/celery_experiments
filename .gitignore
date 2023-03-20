@@ -155,3 +155,4 @@ cython_debug/
 before/
 .DS_Store
 *.sqlite
+*.rdb

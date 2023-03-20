@@ -1,11 +1,16 @@
 from enum import Enum
 from os import getcwd
+from pathlib import Path
+import sys
 
 from pony.orm import PrimaryKey, Required, StrArray, db_session
 
+current = Path(__file__)
+sys.path.insert(0, str(current.parent.parent.absolute()))
+
 from utils.db import get_database
 
-db = get_database(f"{getcwd()}/fibonator.sqlite")
+db = get_database(f"{getcwd()}/sortinator/sortinator.sqlite")
 
 
 class TaskRunRecord(db.Entity):
