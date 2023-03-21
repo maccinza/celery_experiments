@@ -1,6 +1,6 @@
 from copy import copy
 from pickle import dumps
-from random import randrange, shuffle
+from random import shuffle
 from timeit import default_timer as timer
 
 from fastapi import FastAPI
@@ -10,8 +10,7 @@ from sorter import bubble_sort
 from utils.helpers import get_uuid
 from utils.log import get_logger
 
-LOWER_LIMIT = 50000
-UPPER_LIMIT = 100000
+ARRAY_SIZE = 80000
 
 logger = get_logger(__name__)
 app = FastAPI()
@@ -20,8 +19,7 @@ app = FastAPI()
 @app.get("/random_sorting")
 def get_random_sorting():
     endpoint_start = timer()
-    rand_range = randrange(LOWER_LIMIT, UPPER_LIMIT)
-    numbers = [num for num in range(1, rand_range + 1)]
+    numbers = [num for num in range(1, ARRAY_SIZE + 1)]
     shuffle(numbers)
     array = copy(numbers)
 
