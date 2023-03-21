@@ -154,5 +154,6 @@ cython_debug/
 
 before/
 .DS_Store
-*.sqlite
+sortinator/*.sqlite
+webserver/*.sqlite
 *.rdb
