@@ -4,7 +4,7 @@ from pony.orm import PrimaryKey, Required, db_session
 
 from utils.db import get_database
 
-db = get_database(f"{getcwd()}/webserver.sqlite")
+db = get_database(f"{getcwd()}/webserver/webserver.sqlite")
 
 
 class SortingRecord(db.Entity):
