@@ -9,7 +9,7 @@ db = get_database(f"{getcwd()}/webserver/webserver.sqlite")
 
 class SortingRecord(db.Entity):
     id = PrimaryKey(str)
-    array = Required(bytes)
+    await_time_sec = Required(str)
     time_in_sec = Required(str)
 
 

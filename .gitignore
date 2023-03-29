@@ -157,3 +157,4 @@ before/
 sortinator/*.sqlite
 webserver/*.sqlite
 *.rdb
+*.dump

@@ -1,48 +1,45 @@
 from copy import copy
 from pickle import dumps
-from random import shuffle
+from random import randrange
+from time import sleep
 from timeit import default_timer as timer
 
 from fastapi import FastAPI
 
 from database import insert_and_assert
-from sorter import bubble_sort
 from utils.helpers import get_uuid
 from utils.log import get_logger
 
 ARRAY_SIZE = 80000
+MIN_WAIT_SEC = 180
+MAX_WAIT_SEC = 210
 
 logger = get_logger(__name__)
 app = FastAPI()
 
 
-@app.get("/random_sorting")
-def get_random_sorting():
+@app.get("/random_waiting")
+def get_random_waiting():
     endpoint_start = timer()
-    numbers = [num for num in range(1, ARRAY_SIZE + 1)]
-    shuffle(numbers)
-    array = copy(numbers)
+    wait_time = randrange(MIN_WAIT_SEC, MAX_WAIT_SEC)
 
-    logger.info(f"Sorting array with {len(numbers)} shuffled numbers")
-    bs_start = timer()
-    bubble_sort(numbers)
-    bs_elapsed_time = timer() - bs_start
+    logger.info(f"Will be waiting for {wait_time} seconds...")
+    wt_start = timer()
+    sleep(wait_time)
+    wt_elapsed_time = timer() - wt_start
     logger.info(
-        f"Bubble sort took {bs_elapsed_time: .2f} seconds to sort array with "
-        f"size {len(numbers)}"
+        f"Endpoint has taken {wt_elapsed_time: .2f} seconds so far."
     )
 
     _id = get_uuid()
     data = {
         "id": _id,
-        "array": array,
-        "time_in_sec": f"{bs_elapsed_time: .2f}",
+        "await_time_sec": f"{wait_time: .2f}",
+        "time_in_sec": f"{wt_elapsed_time: .2f}",
     }
 
-    pickled = {**data}
-    pickled.update({"array": dumps(data["array"])})
     try:
-        success = insert_and_assert(pickled)
+        success = insert_and_assert(data)
     except Exception as exc:
         success = False
         logger.error(f"Failed to insert and assert with exception. Got {exc}")

@@ -44,14 +44,14 @@ This is a package with some utilities such as a small client to request data fro
 ### sortinator
 This is a celery application configured with 2 queues, a producer and the consumer implementations.
 The consumer implements 2 different types of tasks:
-   - `sortinate`: this task fires up a request to the webserver, parses the response, inserts a record into an sqlite database and returns a dictionary with collected data and measurements;
-   - `summarize`: this task expects a list of dictionaries (outputs from `sortinate` tasks) to summarize and insert a record into an sqlite database
+   - `waitinate`: this task fires up a request to the webserver, parses the response, inserts a record into an sqlite database and returns a dictionary with collected data and measurements;
+   - `summarize`: this task expects a list of dictionaries (outputs from `waitinate` tasks) to summarize and insert a record into an sqlite database
 The producer submits 2 chords (for most of the tests run):
-   - 1 chord containing `7 sortinate` tasks as header tasks and a `summarize` task as the callback task;
-   - 1 chord containing `3 sortinate` tasks as header tasks and a `summarize` task as the callback task;
+   - 1 chord containing `7 waitinate` tasks as header tasks and a `summarize` task as the callback task;
+   - 1 chord containing `3 waitinate` tasks as header tasks and a `summarize` task as the callback task;
 For one set of specific tests we have run:
-   - 1 chord containing `70 sortinate` tasks as header tasks and a `summarize` task as the callback task;
-   - 1 chord containing `35 sortinate` tasks as header tasks and a `summarize` task as the callback task;
+   - 1 chord containing `70 waitinate` tasks as header tasks and a `summarize` task as the callback task;
+   - 1 chord containing `35 waitinate` tasks as header tasks and a `summarize` task as the callback task;
 
 ## Running
 If you intend to run/experiment by yourself, assuming you have rabbitmq and redis installed in your machine, you will need:
