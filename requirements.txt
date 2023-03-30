@@ -7,3 +7,5 @@ redis==4.5.2
 gevent==22.10.2
 eventlet==0.33.3
 flower==1.2.0
+
+# install syrupy for running monitoring machine resources during tests: https://github.com/jeetsukumaran/Syrupy

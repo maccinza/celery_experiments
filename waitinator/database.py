@@ -27,9 +27,6 @@ class SummaryRecord(db.Entity):
     min_time =  Required(str)
     max_time = Required(str)
     avg_time = Required(str)
-    min_length = Required(str)
-    max_length = Required(str)
-    avg_length = Required(str)
     task_ids = Required(StrArray)
     overall_success = Required(bool)
 
