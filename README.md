@@ -32,16 +32,15 @@ To be able to achieve the tasks characteristics mentioned above and test the dif
 
 ### webserver
 This is a simple fastapi server with an endpoint that, upon request:
-   - Creates an array with integers from 1 to 80000;
-   - Shuffles the array;
-   - Sorts the array in place with a bubble sort implementation;
-   - Inserts a record containing the id, running time in seconds and the array into a sqlite database;
+   - Randomly choses a value between 180 and 210 seconds;
+   - Sleeps for that amount of seconds;
+   - Inserts a record containing the id, the sleep time in seconds and total request time in secods;
    - Returns an http response containing the same data from the previous step;
 
 ### utils
 This is a package with some utilities such as a small client to request data from the webserver, logging configuration and helper functions.
 
-### sortinator
+### waitinator
 This is a celery application configured with 2 queues, a producer and the consumer implementations.
 The consumer implements 2 different types of tasks:
    - `waitinate`: this task fires up a request to the webserver, parses the response, inserts a record into an sqlite database and returns a dictionary with collected data and measurements;
@@ -49,9 +48,9 @@ The consumer implements 2 different types of tasks:
 The producer submits 2 chords (for most of the tests run):
    - 1 chord containing `7 waitinate` tasks as header tasks and a `summarize` task as the callback task;
    - 1 chord containing `3 waitinate` tasks as header tasks and a `summarize` task as the callback task;
-For one set of specific tests we have run:
-   - 1 chord containing `70 waitinate` tasks as header tasks and a `summarize` task as the callback task;
-   - 1 chord containing `35 waitinate` tasks as header tasks and a `summarize` task as the callback task;
+
+### reporter
+This is a package with a python script that loads recorded raw data for cpu and memory usage, parses it, cleans it and outputs a json file with the cleaned data, as well as a graphic representation of the data for each of the monitored PIDs.
 
 ## Running
 If you intend to run/experiment by yourself, assuming you have rabbitmq and redis installed in your machine, you will need:
@@ -69,11 +68,11 @@ If you intend to run/experiment by yourself, assuming you have rabbitmq and redi
    ```
    - A shell for running the consumer (with the various configurations):
    ```
-   celery -A sortinator.tasks worker --loglevel=info --without-gossip --without-mingle
+   celery -A waitinator.tasks worker --loglevel=info --without-gossip --without-mingle
    ```
    - A shell for running the producer:
    ```
-   python sortinator/producer.py
+   python waitinator/producer.py
    ```
 
 ## Tests and Results
@@ -132,5 +131,10 @@ One possible downside is that, for being able to run celery with gevent and even
    worker would receive a couple tasks and hang, not running any tasks.
 
 
-## TODO
-Compare data for larger number of tasks (100 tasks) and high concurrency (200 processes) letting it run overnight.
+## Further testing
+
+We decided to re-run the tests and further investigate:
+   - Memory and CPU usage impacts when using different pools and levels of concurrency;
+   - Number of connections to the backend result and to the message broker
+
+The results and discussions are detailed in the [monitoring documentation page](docs/monitoring.md).
