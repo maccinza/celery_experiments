@@ -1,5 +1,5 @@
 {
     "total_time": 951.185105085373,
-    "backend_connections": 6,
+    "backend_connections": 5,
     "broker_connections: 4,
 }
